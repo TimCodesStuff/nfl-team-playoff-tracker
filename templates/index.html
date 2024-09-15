@@ -14,28 +14,15 @@
         <div id="last-updated"></div>
     </header>
     <main class="content-container">
-        <!-- Sidebar for buttons -->
         <aside id="sidebar">
             <section id="global-legend" class="global-legend"></section>
         </aside>
-
-        <!-- Chart container on the right -->
-        <section id="chart-container" class="chart-container">
-            <!-- Your chart canvases will be inserted here -->
+        <section id="chart-container">
+            <!-- Chart canvases will be inserted here by JavaScript -->
         </section>
     </main>
-    <!-- <main>
-        <section id="global-legend" class="global-legend"></section>
-        <section id="chart-container" class="chart-container">
-            <div class="chart"><canvas id="round1-chart"></canvas></div>
-            <div class="chart"><canvas id="round2-chart"></canvas></div>
-            <div class="chart"><canvas id="conference-championship-chart"></canvas></div>
-            <div class="chart"><canvas id="super-bowl-appearance-chart"></canvas></div>
-            <div class="chart"><canvas id="super-bowl-winner-chart"></canvas></div>
-        </section>
-    </main> -->
     <footer>
-        <p>Probabilities sourced from <a href="https://www.playoffstatus.com/nfl/nflpostseasonprob.html" target="_blank">https://www.playoffstatus.com/nfl/nflpostseasonprob.html</a></p>
+        <p>Probabilities sourced from <a href="https://www.playoffstatus.com/nfl/nflpostseasonprob.html" target="_blank">PlayoffStatus.com</a></p>
         <p>© 2024 NFL Playoff Probability Tracker</p>
     </footer>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
