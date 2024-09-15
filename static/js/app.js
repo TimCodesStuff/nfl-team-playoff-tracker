@@ -88,6 +88,9 @@ function createTeamSection(conference, teamGroups, data, container) {
         divisionHeader.textContent = division;
         section.appendChild(divisionHeader);
 
+        const teamButtonsGrid = document.createElement('div');
+        teamButtonsGrid.className = 'team-buttons-grid';
+
         teamGroups[division].forEach(team => {
             if (data.hasOwnProperty(getTeamFromTeamName(team))) {
                 const displayName = formatTeamName(team);
@@ -107,9 +110,11 @@ function createTeamSection(conference, teamGroups, data, container) {
                     teamButton.classList.toggle('inactive');
                 });
 
-                section.appendChild(teamButton);
+                teamButtonsGrid.appendChild(teamButton);
             }
         });
+
+        section.appendChild(teamButtonsGrid);
     });
 
     container.appendChild(section);
@@ -176,11 +181,11 @@ function createCharts(data) {
     chartContainer.innerHTML = '';
 
     const stages = [
-        { id: 'super-bowl-winner', name: 'Super Bowl Winner', dataKey: 'win_super_bowl' },
-        { id: 'super-bowl-appearance', name: 'Super Bowl Appearance', dataKey: 'win_conference' },
+        { id: 'super-bowl-winner', name: 'Playoffs', dataKey: 'win_super_bowl' },
+        { id: 'super-bowl-appearance', name: 'Divisional Roun', dataKey: 'win_conference' },
         { id: 'conference-championship', name: 'Conference Championship', dataKey: 'first_round_bye' },
-        { id: 'round2', name: 'Divisional Round', dataKey: 'win_division' },
-        { id: 'round1', name: 'Playoffs', dataKey: 'make_playoffs' }
+        { id: 'round2', name: 'Super Bowl Appearance', dataKey: 'win_division' },
+        { id: 'round1', name: 'Super Bowl Winner', dataKey: 'make_playoffs' }
     ];
 
     stages.forEach(stage => {
