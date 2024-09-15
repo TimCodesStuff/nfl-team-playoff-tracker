@@ -54,5 +54,14 @@ def run_scraper():
 
     return jsonify({"scraper_output": scraper_output})
 
+@app.route('/api/database_dump')
+def database_dump():
+    all_data = get_all_playoff_probabilities()
+    return jsonify({
+        "data": all_data,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "total_records": len(all_data)
+    })
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
