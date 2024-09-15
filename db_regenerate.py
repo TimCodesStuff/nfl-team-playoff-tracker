@@ -13,6 +13,11 @@ def regenerate_db_from_json(json_file_path):
     cur = conn.cursor()
 
     try:
+        # Clear out the existing data before inserting new data
+        cur.execute('TRUNCATE TABLE playoff_probabilities')
+        conn.commit()
+
+        # Insert new data
         for entry in data:
             cur.execute('''
                 INSERT INTO playoff_probabilities 
