@@ -1,9 +1,10 @@
 import requests
 from bs4 import BeautifulSoup
-from database import insert_playoff_probabilities
+from database import insert_playoff_probabilities, get_most_recent_team_data
 import logging
 import psycopg2
 import os
+from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -40,7 +41,7 @@ def scrape_nfl_data():
         # Find the table
         table = soup.find('table')
         if not table:
-            logging.error("Table not found. The website structure might have changed.")
+            print("Table not found. The website structure might have changed.")
             return
 
         # Extract data from the table
@@ -61,32 +62,42 @@ def scrape_nfl_data():
                     win_conference = float(cells[8].text.strip('%')) / 100 if '%' in cells[8].text else 0
                     win_super_bowl = float(cells[9].text.strip('%')) / 100 if '%' in cells[9].text else 0
                 except ValueError as e:
-                    logging.warning(f"Error parsing probabilities for {team_name}: {str(e)}")
+                    print(f"Error parsing probabilities for {team_name}: {str(e)}")
                     continue
 
                 # Verify probabilities are within expected range
                 if not all(0 <= prob <= 1 for prob in [make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl]):
-                    logging.warning(f"Unexpected probability values for {team_name}")
+                    print(f"Unexpected probability values for {team_name}")
 
-                logging.info(f"Team: {team_name}")
-                logging.info(f"Make Playoffs: {make_playoffs:.2f}")
-                logging.info(f"Win Division: {win_division:.2f}")
-                logging.info(f"First Round Bye: {first_round_bye:.2f}")
-                logging.info(f"Win Conference: {win_conference:.2f}")
-                logging.info(f"Win Super Bowl: {win_super_bowl:.2f}")
-                logging.info("---")
+                # Get the most recent data for this team
+                most_recent_data = get_most_recent_team_data(team_name)
 
-                insert_playoff_probabilities(team_name, make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl)
-                team_count += 1
+                # Compare new data with most recent data
+                if most_recent_data is None or data_has_changed(most_recent_data, make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl):
+                    print(f"Inserting new data for {team_name}")
+                    insert_playoff_probabilities(team_name, make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl)
+                    team_count += 1
+                else:
+                    print(f"No changes in data for {team_name}")
 
-        logging.info(f"Scraping completed successfully. Total teams scraped: {team_count}")
-        if team_count != 32:
-            logging.warning(f"Expected 32 teams, but scraped {team_count} teams.")
+        print(f"Scraping completed successfully. Total teams with updated data: {team_count}")
+        if team_count == 0:
+            print("No changes in data for any team.")
+        elif team_count != 32:
+            print(f"Expected 32 teams, but updated {team_count} teams.")
     except requests.RequestException as e:
-        logging.error(f"An error occurred while fetching the webpage: {str(e)}")
+        print(f"An error occurred while fetching the webpage: {str(e)}")
     except Exception as e:
-        logging.error(f"An unexpected error occurred while scraping: {str(e)}")
+        print(f"An unexpected error occurred while scraping: {str(e)}")
+
+def data_has_changed(old_data, make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl):
+    return (
+        abs(old_data['make_playoffs'] - make_playoffs) > 1e-6 or
+        abs(old_data['win_division'] - win_division) > 1e-6 or
+        abs(old_data['first_round_bye'] - first_round_bye) > 1e-6 or
+        abs(old_data['win_conference'] - win_conference) > 1e-6 or
+        abs(old_data['win_super_bowl'] - win_super_bowl) > 1e-6
+    )
 
 if __name__ == "__main__":
-    #clear_database()
     scrape_nfl_data()

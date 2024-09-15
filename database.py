@@ -54,6 +54,35 @@ def insert_playoff_probabilities(team_name, make_playoffs, win_division, first_r
         cur.close()
         conn.close()
 
+def get_most_recent_team_data(team_name):
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            SELECT make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl
+            FROM playoff_probabilities
+            WHERE team_name = %s
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """, (team_name,))
+        result = cur.fetchone()
+        if result:
+            return {
+                'make_playoffs': result[0],
+                'win_division': result[1],
+                'first_round_bye': result[2],
+                'win_conference': result[3],
+                'win_super_bowl': result[4]
+            }
+        return None
+    except Exception as e:
+        print(f"An error occurred while fetching most recent team data: {str(e)}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
 def get_playoff_probabilities():
     conn = psycopg2.connect(**db_params)
     cur = conn.cursor()

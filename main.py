@@ -3,6 +3,8 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import scrape_nfl_data
 from database import init_db, get_playoff_probabilities, get_all_playoff_probabilities
 from datetime import datetime, timezone
+import io
+import sys
 
 app = Flask(__name__)
 
@@ -34,6 +36,23 @@ def get_probabilities():
 def get_all_data():
     all_data = get_all_playoff_probabilities()
     return jsonify(all_data)
+
+@app.route('/api/run_scraper')
+def run_scraper():
+    # Redirect stdout to capture print statements
+    old_stdout = sys.stdout
+    sys.stdout = output = io.StringIO()
+
+    # Run the scraper
+    scrape_nfl_data()
+
+    # Get the captured output
+    scraper_output = output.getvalue()
+
+    # Restore stdout
+    sys.stdout = old_stdout
+
+    return jsonify({"scraper_output": scraper_output})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
