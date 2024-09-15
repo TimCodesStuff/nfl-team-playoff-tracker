@@ -101,6 +101,15 @@ def upload_data():
         logging.error(f'Error occurred during bulk insert: {str(e)}')
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/update_data', methods=['POST'])
+def update_data():
+    try:
+        scrape_nfl_data()
+        return jsonify({"success": True, "message": "Data updated successfully"}), 200
+    except Exception as e:
+        logging.error(f'Error occurred while updating data: {str(e)}')
+        return jsonify({"success": False, "error": str(e)}), 500
+
 @app.errorhandler(413)
 def request_entity_too_large(error):
     logging.error('Request entity too large')
