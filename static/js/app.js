@@ -70,17 +70,25 @@ function createTeamSection(conference, teamGroups, data, container) {
     header.textContent = `${conference} Teams`;
     section.appendChild(header);
 
-    // Select/Deselect All buttons
+    // Select/Deselect All buttons container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+
+    // Select All button
     const selectAllBtn = document.createElement('button');
-    selectAllBtn.textContent = `Select All ${conference}`;
+    selectAllBtn.textContent = `Select All`;
+    selectAllBtn.className = 'select-all-btn';
     selectAllBtn.addEventListener('click', () => toggleAllTeams(Object.values(teamGroups).flat(), true));
 
+    // Deselect All button
     const deselectAllBtn = document.createElement('button');
-    deselectAllBtn.textContent = `Deselect All ${conference}`;
+    deselectAllBtn.textContent = `Deselect All`;
+    deselectAllBtn.className = 'deselect-all-btn';
     deselectAllBtn.addEventListener('click', () => toggleAllTeams(Object.values(teamGroups).flat(), false));
 
-    section.appendChild(selectAllBtn);
-    section.appendChild(deselectAllBtn);
+    buttonContainer.appendChild(selectAllBtn);
+    buttonContainer.appendChild(deselectAllBtn);
+    section.appendChild(buttonContainer);
 
     // Create divisions and individual team buttons
     Object.keys(teamGroups).forEach(division => {

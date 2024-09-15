@@ -2,6 +2,8 @@ import psycopg2
 from psycopg2 import sql
 import os
 from datetime import datetime, timezone
+import logging
+
 
 # Database connection parameters
 db_params = {
@@ -159,6 +161,23 @@ def bulk_insert_playoff_probabilities(data):
     cur = conn.cursor()
 
     try:
+        # Log the number of rows before truncating
+        cur.execute('SELECT COUNT(*) FROM playoff_probabilities')
+        pre_truncate_count = cur.fetchone()[0]
+        logging.info(f'Rows in table before truncating: {pre_truncate_count}')
+
+        # Clear out the existing data before inserting new data
+        cur.execute('TRUNCATE TABLE playoff_probabilities')
+        conn.commit()
+
+        # Log the number of rows after truncating to confirm it's zero
+        cur.execute('SELECT COUNT(*) FROM playoff_probabilities')
+        post_truncate_count = cur.fetchone()[0]
+        logging.info(f'Rows in table after truncating: {post_truncate_count}')
+
+        if post_truncate_count != 0:
+            logging.error(f"Expected 0 rows after truncating, but found {post_truncate_count} rows.")
+        
         inserted_count = 0
         for item in data:
             cur.execute("""
