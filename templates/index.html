@@ -13,7 +13,18 @@
         <h1>NFL Playoff Probability Tracker</h1>
         <div id="last-updated"></div>
     </header>
-    <main>
+    <main class="content-container">
+        <!-- Sidebar for buttons -->
+        <aside id="sidebar">
+            <section id="global-legend" class="global-legend"></section>
+        </aside>
+
+        <!-- Chart container on the right -->
+        <section id="chart-container" class="chart-container">
+            <!-- Your chart canvases will be inserted here -->
+        </section>
+    </main>
+    <!-- <main>
         <section id="global-legend" class="global-legend"></section>
         <section id="chart-container" class="chart-container">
             <div class="chart"><canvas id="round1-chart"></canvas></div>
@@ -22,7 +33,7 @@
             <div class="chart"><canvas id="super-bowl-appearance-chart"></canvas></div>
             <div class="chart"><canvas id="super-bowl-winner-chart"></canvas></div>
         </section>
-    </main>
+    </main> -->
     <footer>
         <p>Probabilities sourced from <a href="https://www.playoffstatus.com/nfl/nflpostseasonprob.html" target="_blank">https://www.playoffstatus.com/nfl/nflpostseasonprob.html</a></p>
         <p>© 2024 NFL Playoff Probability Tracker</p>

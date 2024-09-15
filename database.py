@@ -153,3 +153,34 @@ def get_all_playoff_probabilities():
     finally:
         cur.close()
         conn.close()
+
+def bulk_insert_playoff_probabilities(data):
+    conn = psycopg2.connect(**db_params)
+    cur = conn.cursor()
+
+    try:
+        inserted_count = 0
+        for item in data:
+            cur.execute("""
+                INSERT INTO playoff_probabilities 
+                (team_name, make_playoffs, win_division, first_round_bye, win_conference, win_super_bowl, timestamp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s)
+            """, (
+                item['team_name'],
+                item['make_playoffs'],
+                item['win_division'],
+                item['first_round_bye'],
+                item['win_conference'],
+                item['win_super_bowl'],
+                datetime.fromisoformat(item['timestamp'])
+            ))
+            inserted_count += 1
+        
+        conn.commit()
+        return inserted_count
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        cur.close()
+        conn.close()

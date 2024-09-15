@@ -17,28 +17,141 @@ function fetchProbabilities() {
 function updateLastUpdated(timestamp) {
     const lastUpdatedElement = document.getElementById('last-updated');
     const date = new Date(timestamp);
-    const options = { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true, timeZoneName: 'short' };
+    const options = { 
+        weekday: 'short', month: 'short', day: 'numeric', 
+        hour: 'numeric', minute: 'numeric', hour12: true, timeZoneName: 'short' 
+    };
     lastUpdatedElement.textContent = `Last updated: ${date.toLocaleString(undefined, options)}`;
+}
+
+function toggleTeamData(team) {
+    const charts = Object.values(Chart.instances);  // Get all active chart instances
+
+    charts.forEach(chart => {
+        const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === team);
+        if (datasetIndex !== -1) {
+            const meta = chart.getDatasetMeta(datasetIndex);
+            meta.hidden = !meta.hidden;  // Toggle visibility
+            chart.update();  // Update the chart with new visibility
+        }
+    });
 }
 
 function createGlobalLegend(data) {
     const legendContainer = document.getElementById('global-legend');
-    legendContainer.innerHTML = '';
-    Object.keys(data).forEach(team => {
-        const teamItem = document.createElement('div');
-        teamItem.className = 'legend-item';
-        const displayName = formatTeamName(team);
-        teamItem.innerHTML = `<span class="legend-color" style="background-color: ${getTeamColor(displayName)}"></span>${displayName}`;
-        legendContainer.appendChild(teamItem);
+    legendContainer.innerHTML = ''; // Clear previous content
+
+    const nfcTeams = {
+        'NFC East': ['Cowboys', 'Giants', 'Eagles', 'Commanders'],
+        'NFC North': ['Bears', 'Lions', 'Packers', 'Vikings'],
+        'NFC South': ['Falcons', 'Panthers', 'Saints', 'Buccaneers'],
+        'NFC West': ['Cardinals', 'Forty-Niners', 'Seahawks', 'Rams']
+    };
+
+    const afcTeams = {
+        'AFC East': ['Bills', 'Dolphins', 'Patriots', 'Jets'],
+        'AFC North': ['Ravens', 'Bengals', 'Browns', 'Steelers'],
+        'AFC South': ['Texans', 'Colts', 'Jaguars', 'Titans'],
+        'AFC West': ['Broncos', 'Chiefs', 'Raiders', 'Chargers']
+    };
+
+    // Create sections for NFC and AFC
+    createTeamSection('NFC', nfcTeams, data, legendContainer);
+    createTeamSection('AFC', afcTeams, data, legendContainer);
+}
+
+function createTeamSection(conference, teamGroups, data, container) {
+    const section = document.createElement('div');
+    section.className = `legend-section ${conference.toLowerCase()}`;
+
+    const header = document.createElement('h3');
+    header.textContent = `${conference} Teams`;
+    section.appendChild(header);
+
+    // Select/Deselect All buttons
+    const selectAllBtn = document.createElement('button');
+    selectAllBtn.textContent = `Select All ${conference}`;
+    selectAllBtn.addEventListener('click', () => toggleAllTeams(Object.values(teamGroups).flat(), true));
+
+    const deselectAllBtn = document.createElement('button');
+    deselectAllBtn.textContent = `Deselect All ${conference}`;
+    deselectAllBtn.addEventListener('click', () => toggleAllTeams(Object.values(teamGroups).flat(), false));
+
+    section.appendChild(selectAllBtn);
+    section.appendChild(deselectAllBtn);
+
+    // Create divisions and individual team buttons
+    Object.keys(teamGroups).forEach(division => {
+        const divisionHeader = document.createElement('h4');
+        divisionHeader.textContent = division;
+        section.appendChild(divisionHeader);
+
+        teamGroups[division].forEach(team => {
+            if (data.hasOwnProperty(getTeamFromTeamName(team))) {
+                const displayName = formatTeamName(team);
+                const teamColor = getTeamColor(displayName);
+
+                const teamButton = document.createElement('button');
+                teamButton.className = 'legend-item';
+                teamButton.style.backgroundColor = teamColor;
+                teamButton.style.borderColor = teamColor;
+                teamButton.style.color = '#fff'; // Ensure text is readable
+                teamButton.innerHTML = displayName;
+                teamButton.dataset.team = displayName;
+
+                // Toggle chart data on button click
+                teamButton.addEventListener('click', function () {
+                    toggleTeamData(displayName);
+                    teamButton.classList.toggle('inactive');
+                });
+
+                section.appendChild(teamButton);
+            }
+        });
+    });
+
+    container.appendChild(section);
+}
+
+function toggleAllTeams(teams, show) {
+    teams.forEach(team => {
+        const formattedTeamName = formatTeamName(team);
+        const charts = Object.values(Chart.instances);
+
+        charts.forEach(chart => {
+            const datasetIndex = chart.data.datasets.findIndex(dataset => dataset.label === formattedTeamName);
+            if (datasetIndex !== -1) {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                meta.hidden = !show;
+                chart.update();
+            }
+        });
+
+        const teamButton = document.querySelector(`[data-team="${formattedTeamName}"]`);
+        if (teamButton) {
+            if (show) {
+                teamButton.classList.remove('inactive');
+            } else {
+                teamButton.classList.add('inactive');
+            }
+        }
     });
 }
 
 function formatTeamName(team) {
-    if (team === '49ers' || team === "49'ers") {
+    if(team === "Forty-Niners49'ers" || team === '49ers'){
         return 'Forty-Niners';
     }
-    return team.replace("49'ers", "");
+    return team;
 }
+
+function getTeamFromTeamName(teamName){
+    if(teamName === 'Forty-Niners'){
+        return "Forty-Niners49'ers";
+    }
+    return teamName;
+}
+
 
 function getTeamColor(team) {
     const teamColors = {
@@ -52,157 +165,107 @@ function getTeamColor(team) {
         'Forty-Niners': '#AA0000', 'Seahawks': '#002244', 'Buccaneers': '#D50A0A', 'Titans': '#0C2340',
         'Commanders': '#773141'
     };
-    return teamColors[team] || '#' + Math.floor(Math.random()*16777215).toString(16);
+    return teamColors[team] || '#' + Math.floor(Math.random() * 16777215).toString(16);
 }
 
 function createCharts(data) {
     createGlobalLegend(data);
+
     const chartContainer = document.getElementById('chart-container');
     chartContainer.innerHTML = '';
 
-    /*
     const stages = [
-        {id: 'round1', name: 'Round 1', dataKey: 'make_playoffs'},
-        {id: 'round2', name: 'Round 2', dataKey: 'win_division'},
-        {id: 'conference-championship', name: 'Conference Championship', dataKey: 'first_round_bye'},
-        {id: 'super-bowl-appearance', name: 'Super Bowl Appearance', dataKey: 'win_conference'},
-        {id: 'super-bowl-winner', name: 'Super Bowl Winner', dataKey: 'win_super_bowl'}
-    ];
-    */
-
-    const stages = [
-        {id: 'super-bowl-winner', name: 'Round 1', dataKey: 'win_super_bowl'},
-        {id: 'super-bowl-appearance', name: 'Round 2', dataKey: 'win_conference'},
-        {id: 'conference-championship', name: 'Conference Championship', dataKey: 'first_round_bye'},
-        {id: 'round2', name: 'Super Bowl Appearance', dataKey: 'win_division'},
-        {id: 'round1', name: 'Super Bowl Winner', dataKey: 'make_playoffs'}
+        { id: 'super-bowl-winner', name: 'Super Bowl Winner', dataKey: 'win_super_bowl' },
+        { id: 'super-bowl-appearance', name: 'Super Bowl Appearance', dataKey: 'win_conference' },
+        { id: 'conference-championship', name: 'Conference Championship', dataKey: 'first_round_bye' },
+        { id: 'round2', name: 'Divisional Round', dataKey: 'win_division' },
+        { id: 'round1', name: 'Playoffs', dataKey: 'make_playoffs' }
     ];
 
-    stages.forEach((stage, index) => {
-        const chartDiv = document.createElement('div');
-        chartDiv.className = 'chart';
-        chartDiv.innerHTML = `<canvas id="${stage.id}-chart"></canvas>`;
-        chartContainer.appendChild(chartDiv);
+    stages.forEach(stage => {
+            const chartDiv = document.createElement('div');
+            chartDiv.className = 'chart';
+            chartDiv.innerHTML = `<canvas id="${stage.id}-chart"></canvas>`;
+            chartContainer.appendChild(chartDiv);
 
-        const ctx = document.getElementById(`${stage.id}-chart`).getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                datasets: Object.entries(data).map(([team, probabilities]) => {
-                    const formattedTeamName = formatTeamName(team);
-                    const teamColor = getTeamColor(formattedTeamName);
-                    return {
-                        label: formattedTeamName,
-                        data: probabilities[stage.dataKey].map(point => ({
-                            x: new Date(point.x),
-                            y: point.y * 100 // Convert to percentage
-                        })),
-                        borderColor: teamColor,
-                        backgroundColor: teamColor,
-                        fill: false,
-                        tension: 0 // Make lines straight
-                    };
-                })
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: stage.name,
-                        font: {
-                            size: 16,
-                            weight: 'bold'
+            const ctx = document.getElementById(`${stage.id}-chart`).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: Object.entries(data).map(([team, probabilities]) => {
+                        const formattedTeamName = formatTeamName(team);
+                        const teamColor = getTeamColor(formattedTeamName);
+                        return {
+                            label: formattedTeamName,
+                            data: probabilities[stage.dataKey].map(point => ({
+                                x: new Date(point.x),
+                                y: point.y * 100  // Convert to percentage
+                            })),
+                            borderColor: teamColor,
+                            backgroundColor: teamColor,
+                            fill: false,
+                            hidden: false,
+                            tension: 0 // Make lines straight
+                        };
+                    })
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: stage.name,
+                            font: { size: 16, weight: 'bold' },
+                            padding: { top: 5, bottom: 10 },
+                            color: '#333'
                         },
-                        padding: {
-                            top: 5,
-                            bottom: 10
-                        },
-                        color: '#333'
-                    },
-                    legend: {
-                        display: false
-                    },
-                    tooltip: {
-                        enabled: true, 
-                        mode: 'nearest',
-                        intersect: true,
-                        callbacks: {
-                            title: function(tooltipItems) {
-                                return new Date(tooltipItems[0].parsed.x).toLocaleDateString();
-                            },
-                            label: function(context) {
-                                const teamName = context.dataset.label;
-                                const percentage = context.parsed.y.toFixed(2);
-                                return `${teamName}: ${percentage}%`;
-                            },
-                            labelColor: function(context) {
-                                return {
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: true,
+                            mode: 'nearest',
+                            intersect: true,
+                            callbacks: {
+                                title: (tooltipItems) => new Date(tooltipItems[0].parsed.x).toLocaleDateString(),
+                                label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`,
+                                labelColor: (context) => ({
                                     borderColor: context.dataset.borderColor,
                                     backgroundColor: context.dataset.borderColor
-                                };
+                                })
                             }
                         }
-                    }
-                },
-                scales: {
-                    x: {
-                        type: 'time',
-                        time: {    unit: 'hour',    stepSize: 2,    displayFormats: {        hour: 'MMM d ha' // This format shows month, day, and hour (am/pm)    
-                            }},
-                        title: {
-                            display: true,
-                            text: 'Date',
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        },
-                        ticks: {
-                            source: 'data',
-                            autoSkip: true,
-                            maxTicksLimit: 100,
-                            maxRotation: 45,
-                            minRotation: 45,
-                            font: {
-                                size: 10
-                            }
-                        },
-                        stacked: true  // Enable stacking on the x-axis
                     },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Probability',
-                            font: {
-                                size: 12,
-                                weight: 'bold'
-                            }
-                        },
-                        min: 0,
-                        max: 100,
-                        ticks: {
-                            stepSize: 25,
-                            callback: function(value) {
-                                return value + '%';
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: { unit: 'hour', stepSize: 2, displayFormats: { hour: 'MMM d ha' }},
+                            title: { display: true, text: 'Date', font: { size: 12, weight: 'bold' }},
+                            ticks: {
+                                source: 'data',
+                                autoSkip: true,
+                                maxTicksLimit: 100,
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: { size: 10 }
                             },
-                            font: {
-                                size: 10
+                            stacked: true
+                        },
+                        y: {
+                            title: { display: true, text: 'Probability', font: { size: 12, weight: 'bold' }},
+                            min: 0,
+                            max: 100,
+                            ticks: {
+                                stepSize: 25,
+                                callback: value => `${value}%`,
+                                font: { size: 10 }
                             }
                         }
+                    },
+                    elements: {
+                        point: { radius: 2, hoverRadius: 5 },
+                        line: { borderWidth: 2 }
                     }
-                },
-                elements: {
-                point: {
-                radius: 2,
-                hoverRadius: 5
-                },
-                line: {
-                borderWidth: 2
                 }
-                }
-            }
+            });
         });
-    });
-}
+    }
