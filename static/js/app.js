@@ -3,9 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function fetchProbabilities() {
+    console.log('Fetching probabilities...');
     fetch('/api/probabilities')
         .then(response => response.json())
         .then(data => {
+            console.log('Received data:', data);
             createCharts(data.probabilities);
             updateLastUpdated(data.last_updated);
         })
@@ -151,7 +153,6 @@ function getTeamFromTeamName(teamName){
     }
     return teamName;
 }
-
 
 function getTeamColor(team) {
     const teamColors = {

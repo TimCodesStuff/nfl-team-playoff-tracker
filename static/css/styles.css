@@ -26,10 +26,16 @@ h1 {
     color: #666;
 }
 
+.content-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 130px); /* Adjust based on header and footer height */
+}
+
 .content-container {
     display: flex;
-    flex-direction: row;
-    height: calc(100vh - 150px); /* Adjust based on header and footer height */
+    flex: 1;
+    overflow: hidden;
 }
 
 #sidebar {
@@ -38,6 +44,7 @@ h1 {
     overflow-y: auto;
     padding: 1rem;
     background-color: #f0f0f0;
+    border-right: 1px solid #ddd;
 }
 
 #chart-container {
@@ -72,8 +79,10 @@ canvas {
 }
 
 .legend-section h3 {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 0.5rem;
 }
 
 .legend-item {
@@ -83,6 +92,7 @@ canvas {
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    margin-bottom: 0.25rem;
 }
 
 .legend-item:hover {
@@ -101,10 +111,11 @@ button {
     padding: 0.5rem;
     margin-bottom: 0.5rem;
     background-color: #f0f0f0;
-    border: none;
+    border: 1px solid #ddd;
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.2s;
+    font-size: 0.9rem;
 }
 
 button:hover {
@@ -132,16 +143,15 @@ footer a:hover {
 }
 
 /* Responsive design */
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .content-container {
         flex-direction: column;
-        height: auto;
     }
 
     #sidebar {
         width: 100%;
-        height: auto;
-        max-height: 300px;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
     }
 
     #chart-container {
@@ -150,5 +160,23 @@ footer a:hover {
 
     .chart {
         height: 300px;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.5rem;
+    }
+
+    #last-updated {
+        font-size: 0.8rem;
+    }
+
+    .legend-section h3 {
+        font-size: 1rem;
+    }
+
+    button {
+        font-size: 0.8rem;
     }
 }
