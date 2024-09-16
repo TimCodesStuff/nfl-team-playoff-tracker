@@ -56,11 +56,11 @@ def scrape_nfl_data():
                     team_name = "49ers"
                 # Extract probabilities from the correct columns
                 try:
-                    make_playoffs = float(cells[5].text.strip('%')) / 100 if '%' in cells[5].text else 0
-                    win_division = float(cells[6].text.strip('%')) / 100 if '%' in cells[6].text else 0
-                    first_round_bye = float(cells[7].text.strip('%')) / 100 if '%' in cells[7].text else 0
-                    win_conference = float(cells[8].text.strip('%')) / 100 if '%' in cells[8].text else 0
-                    win_super_bowl = float(cells[9].text.strip('%')) / 100 if '%' in cells[9].text else 0
+                    make_playoffs = float(cells[5].text.strip('%').strip('<'))/ 100 if '%' in cells[5].text else 0
+                    win_division = float(cells[6].text.strip('%').strip('<')) / 100 if '%' in cells[6].text else 0
+                    first_round_bye = float(cells[7].text.strip('%').strip('<')) / 100 if '%' in cells[7].text else 0
+                    win_conference = float(cells[8].text.strip('%').strip('<')) / 100 if '%' in cells[8].text else 0
+                    win_super_bowl = float(cells[9].text.strip('%').strip('<')) / 100 if '%' in cells[9].text else 0
                 except ValueError as e:
                     print(f"Error parsing probabilities for {team_name}: {str(e)}")
                     continue

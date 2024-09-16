@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
     fetchProbabilities();
-    setupUpdateDataButton();
 });
 
 function fetchProbabilities() {
@@ -27,43 +26,6 @@ function updateLastUpdated(timestamp) {
     lastUpdatedElement.textContent = `Last updated: ${date.toLocaleString(undefined, options)}`;
 }
 
-function setupUpdateDataButton() {
-    const updateDataBtn = document.getElementById('update-data-btn');
-    let lastUpdateTime = 0;
-    const cooldownPeriod = 30 * 60 * 1000; // 30 minutes in milliseconds
-
-    updateDataBtn.addEventListener('click', function() {
-        const currentTime = Date.now();
-        if (currentTime - lastUpdateTime < cooldownPeriod) {
-            const remainingTime = Math.ceil((cooldownPeriod - (currentTime - lastUpdateTime)) / 60000);
-            alert(`Please wait ${remainingTime} minutes before updating again.`);
-            return;
-        }
-
-        updateDataBtn.disabled = true;
-        updateDataBtn.textContent = 'Updating...';
-
-        fetch('/api/update_data', { method: 'POST' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    lastUpdateTime = currentTime;
-                    fetchProbabilities();
-                    alert('Data updated successfully!');
-                } else {
-                    alert('Failed to update data. Please try again later.');
-                }
-            })
-            .catch(error => {
-                console.error('Error updating data:', error);
-                alert('An error occurred while updating data. Please try again later.');
-            })
-            .finally(() => {
-                updateDataBtn.disabled = false;
-                updateDataBtn.textContent = 'Update Data';
-            });
-    });
-}
 
 function toggleTeamData(team) {
     const charts = Object.values(Chart.instances);  // Get all active chart instances
@@ -229,7 +191,7 @@ function createCharts(data) {
 
     const stages = [
         { id: 'super-bowl-winner', name: 'Playoffs', dataKey: 'win_super_bowl' },
-        { id: 'super-bowl-appearance', name: 'Divisional Roun', dataKey: 'win_conference' },
+        { id: 'super-bowl-appearance', name: 'Divisional Round', dataKey: 'win_conference' },
         { id: 'conference-championship', name: 'Conference Championship', dataKey: 'first_round_bye' },
         { id: 'round2', name: 'Super Bowl Appearance', dataKey: 'win_division' },
         { id: 'round1', name: 'Super Bowl Winner', dataKey: 'make_playoffs' }
