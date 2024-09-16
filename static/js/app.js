@@ -206,89 +206,98 @@ function createCharts(data) {
     ];
 
     stages.forEach(stage => {
-            const chartDiv = document.createElement('div');
-            chartDiv.className = 'chart';
-            chartDiv.innerHTML = `<canvas id="${stage.id}-chart"></canvas>`;
-            chartContainer.appendChild(chartDiv);
+        const chartDiv = document.createElement('div');
+        chartDiv.className = 'chart';
+        chartDiv.innerHTML = `<canvas id="${stage.id}-chart"></canvas>`;
+        chartContainer.appendChild(chartDiv);
 
-            const ctx = document.getElementById(`${stage.id}-chart`).getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    datasets: Object.entries(data).map(([team, probabilities]) => {
-                        const formattedTeamName = formatTeamName(team);
-                        const teamColor = getTeamColor(formattedTeamName);
-                        return {
-                            label: formattedTeamName,
-                            data: probabilities[stage.dataKey].map(point => ({
-                                x: new Date(point.x),
-                                y: point.y * 100  // Convert to percentage
-                            })),
-                            borderColor: teamColor,
-                            backgroundColor: teamColor,
-                            fill: false,
-                            hidden: false,
-                            tension: 0 // Make lines straight
-                        };
-                    })
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        title: {
-                            display: true,
-                            text: stage.name,
-                            font: { size: 16, weight: 'bold' },
-                            padding: { top: 5, bottom: 10 },
-                            color: '#333'
-                        },
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: true,
-                            mode: 'nearest',
-                            intersect: true,
-                            callbacks: {
-                                title: (tooltipItems) => new Date(tooltipItems[0].parsed.x).toLocaleDateString(),
-                                label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`,
-                                labelColor: (context) => ({
-                                    borderColor: context.dataset.borderColor,
-                                    backgroundColor: context.dataset.borderColor
-                                })
-                            }
-                        }
+        const ctx = document.getElementById(`${stage.id}-chart`).getContext('2d');
+
+        // Calculate the maximum value across all datasets
+        const maxValue = Math.max(
+            ...Object.values(data).flatMap(probabilities => 
+                probabilities[stage.dataKey].map(point => point.y * 100)
+            )
+        );
+
+        const yAxisMax = Math.min(maxValue + 5, 100);
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                datasets: Object.entries(data).map(([team, probabilities]) => {
+                    const formattedTeamName = formatTeamName(team);
+                    const teamColor = getTeamColor(formattedTeamName);
+                    return {
+                        label: formattedTeamName,
+                        data: probabilities[stage.dataKey].map(point => ({
+                            x: new Date(point.x),
+                            y: point.y * 100  // Convert to percentage
+                        })),
+                        borderColor: teamColor,
+                        backgroundColor: teamColor,
+                        fill: false,
+                        hidden: false,
+                        tension: 0 // Make lines straight
+                    };
+                })
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: stage.name,
+                        font: { size: 16, weight: 'bold' },
+                        padding: { top: 5, bottom: 10 },
+                        color: '#333'
                     },
-                    scales: {
-                        x: {
-                            type: 'time',
-                            time: { unit: 'hour', stepSize: 2, displayFormats: { hour: 'MMM d ha' }},
-                            title: { display: true, text: 'Date', font: { size: 12, weight: 'bold' }},
-                            ticks: {
-                                source: 'data',
-                                autoSkip: true,
-                                maxTicksLimit: 100,
-                                maxRotation: 45,
-                                minRotation: 45,
-                                font: { size: 10 }
-                            },
-                            stacked: true
-                        },
-                        y: {
-                            title: { display: true, text: 'Probability', font: { size: 12, weight: 'bold' }},
-                            min: 0,
-                            max: 100,
-                            ticks: {
-                                stepSize: 25,
-                                callback: value => `${value}%`,
-                                font: { size: 10 }
-                            }
+                    legend: { display: false },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'nearest',
+                        intersect: true,
+                        callbacks: {
+                            title: (tooltipItems) => new Date(tooltipItems[0].parsed.x).toLocaleDateString(),
+                            label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)}%`,
+                            labelColor: (context) => ({
+                                borderColor: context.dataset.borderColor,
+                                backgroundColor: context.dataset.borderColor
+                            })
                         }
-                    },
-                    elements: {
-                        point: { radius: 2, hoverRadius: 5 },
-                        line: { borderWidth: 2 }
                     }
+                },
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: { unit: 'hour', stepSize: 2, displayFormats: { hour: 'MMM d ha' }},
+                        title: { display: true, text: 'Date', font: { size: 12, weight: 'bold' }},
+                        ticks: {
+                            source: 'data',
+                            autoSkip: true,
+                            maxTicksLimit: 100,
+                            maxRotation: 45,
+                            minRotation: 45,
+                            font: { size: 10 }
+                        },
+                        stacked: true
+                    },
+                    y: {
+                        title: { display: true, text: 'Probability', font: { size: 12, weight: 'bold' }},
+                        min: 0,
+                        max: yAxisMax, // Use the calculated maximum value
+                        ticks: {
+                            callback: value => `${value}%`,
+                            font: { size: 10 }
+                        }
+                    }
+                },
+                elements: {
+                    point: { radius: 2, hoverRadius: 5 },
+                    line: { borderWidth: 2 }
                 }
-            });
+            }
         });
+    });
     }
