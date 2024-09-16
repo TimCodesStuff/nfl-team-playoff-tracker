@@ -13,11 +13,11 @@
         <h1>NFL Playoff Probability Tracker</h1>
         <div class="last-updated-container">
             <div id="last-updated">Last updated: some date</div>
-            <!-- <button id="update-data-btn" class="update-data-btn">Update Data</button> -->
+            <!-- <button id="toggle-sidebar" class="toggle-sidebar-btn">Toggle Legend</button> -->
         </div>
     </header>
     <main class="content-container">
-        <aside id="sidebar">
+        <aside id="sidebar" class="sidebar">
             <section id="global-legend" class="global-legend"></section>
         </aside>
         <section id="chart-container">
@@ -28,6 +28,7 @@
         <p>Probabilities sourced from <a href="https://www.playoffstatus.com/nfl/nflpostseasonprob.html" target="_blank">PlayoffStatus.com</a></p>
         <p>© 2024 NFL Playoff Probability Tracker</p>
     </footer>
+
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

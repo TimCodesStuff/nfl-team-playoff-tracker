@@ -1,6 +1,14 @@
 document.addEventListener('DOMContentLoaded', function() {
     fetchProbabilities();
+
+    const toggleButton = document.getElementById('toggle-sidebar');
+    const sidebar = document.getElementById('sidebar');
+
+    toggleButton.addEventListener('click', function() {
+        sidebar.classList.toggle('collapsed');
+    });
 });
+
 
 function fetchProbabilities() {
     console.log('Fetching probabilities...');
