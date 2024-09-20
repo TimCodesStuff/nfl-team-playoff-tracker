@@ -1,4 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    await trackPageView();
     fetchProbabilities();
 
     const toggleButton = document.getElementById('toggle-sidebar');
@@ -301,3 +302,18 @@ function createCharts(data) {
         });
     });
     }
+
+async function trackPageView() {
+    try {
+        const response = await fetch('https://ipapi.co/json/');
+        const data = await response.json();
+        const country = data.country_name || 'Unknown';
+        await fetch('/track-page-view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ country: country })
+        });
+    } catch (error) {
+        console.error('Error tracking page view:', error);
+    }
+}

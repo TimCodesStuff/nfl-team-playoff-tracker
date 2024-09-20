@@ -3,10 +3,12 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from scraper import scrape_nfl_data
 from database import init_db, get_playoff_probabilities, get_all_playoff_probabilities, bulk_insert_playoff_probabilities
 from datetime import datetime, timezone
+from replit import db
 import io
 import sys
 import json
 import logging
+
 
 app = Flask(__name__)
 
@@ -30,6 +32,21 @@ scrape_nfl_data()
 @app.route('/')
 def index():
     return render_template('index.html')
+
+# Track page views endpoint
+@app.route('/track-page-view', methods=['POST'])
+def track_page_view():
+    country = request.json.get('country', 'Unknown')
+
+    # Increment total page views
+    db['page_views'] = db.get('page_views', 0) + 1
+
+    # Track views by country
+    if 'countries' not in db:
+        db['countries'] = {}
+    db['countries'][country] = db['countries'].get(country, 0) + 1
+
+    return 'Page view tracked', 200
 
 @app.route('/api/probabilities')
 def get_probabilities():
@@ -109,6 +126,15 @@ def update_data():
     except Exception as e:
         logging.error(f'Error occurred while updating data: {str(e)}')
         return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route('/page-views', methods=['GET'])
+def get_page_views():
+    total_views = db.get('page_views', 0)
+    countries = dict(db.get('countries', {}))  # Convert ObservedDict to dict
+    return jsonify({
+        'total_views': total_views,
+        'countries': countries
+    })
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
