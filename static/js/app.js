@@ -10,7 +10,6 @@ document.addEventListener('DOMContentLoaded', async function() {
     });
 });
 
-
 function fetchProbabilities() {
     console.log('Fetching probabilities...');
     fetch('/api/probabilities')
@@ -34,7 +33,6 @@ function updateLastUpdated(timestamp) {
     };
     lastUpdatedElement.textContent = `Last updated: ${date.toLocaleString(undefined, options)}`;
 }
-
 
 function toggleTeamData(team) {
     const charts = Object.values(Chart.instances);  // Get all active chart instances
@@ -223,7 +221,7 @@ function createCharts(data) {
 
         const yAxisMax = Math.min(maxValue + 5, 100);
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'line',
             data: {
                 datasets: Object.entries(data).map(([team, probabilities]) => {
@@ -300,8 +298,45 @@ function createCharts(data) {
                 }
             }
         });
+
+        // Add click event listener for graph expansion
+        ctx.canvas.addEventListener('click', () => expandGraph(chart, stage.name));
     });
-    }
+}
+
+function expandGraph(chart, title) {
+    const modal = document.createElement('div');
+    modal.className = 'graph-modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>${title}</h2>
+            <canvas id="expanded-chart"></canvas>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    const expandedCtx = document.getElementById('expanded-chart').getContext('2d');
+    const expandedChart = new Chart(expandedCtx, {
+        type: chart.config.type,
+        data: chart.config.data,
+        options: {
+            ...chart.config.options,
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    modal.querySelector('.close-modal').addEventListener('click', () => {
+        document.body.removeChild(modal);
+    });
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            document.body.removeChild(modal);
+        }
+    });
+}
 
 async function trackPageView() {
     try {
