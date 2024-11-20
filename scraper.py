@@ -57,8 +57,14 @@ def scrape_nfl_data():
                 # Extract probabilities from the correct columns
                 try:
                     def clean_probability(text):
-                        # Remove '>' symbol and '%' symbol, then convert to float and divide by 100
-                        cleaned_text = text.replace('>', '').strip('%')
+                        text = text.strip()
+                        # Handle special cases
+                        if '<1%' in text:
+                            return 0.01
+                        if '>99%' in text:
+                            return 0.99
+                        # Remove '>' and '<' symbols and '%' symbol, then convert to float and divide by 100
+                        cleaned_text = text.replace('>', '').replace('<', '').strip('%')
                         return float(cleaned_text) / 100 if cleaned_text else 0
 
                     make_playoffs = clean_probability(cells[5].text)
