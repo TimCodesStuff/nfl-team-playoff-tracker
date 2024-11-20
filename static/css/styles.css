@@ -279,3 +279,12 @@ footer a:hover {
     width: 100%;
     height: calc(100% - 40px);
 }
+.error-message {
+    padding: 1rem;
+    margin: 1rem;
+    background-color: #fff3f3;
+    border: 1px solid #ffcdd2;
+    border-radius: 4px;
+    color: #b71c1c;
+    text-align: center;
+}

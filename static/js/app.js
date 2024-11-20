@@ -1,6 +1,10 @@
 document.addEventListener('DOMContentLoaded', async function() {
-    await trackPageView();
-    fetchProbabilities();
+    try {
+        await trackPageView();
+        await fetchProbabilities();
+    } catch (error) {
+        console.error('Error during initialization:', error);
+    }
 
     const toggleButton = document.getElementById('toggle-sidebar');
     const sidebar = document.getElementById('sidebar');
@@ -12,15 +16,36 @@ document.addEventListener('DOMContentLoaded', async function() {
 
 function fetchProbabilities() {
     console.log('Fetching probabilities...');
-    fetch('/api/probabilities')
-        .then(response => response.json())
+    return fetch('/api/probabilities')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             console.log('Received data:', data);
+            if (!data || !data.probabilities) {
+                throw new Error('Invalid data format received');
+            }
             createCharts(data.probabilities);
             updateLastUpdated(data.last_updated);
+            return data; // Return data for promise chaining
         })
         .catch(error => {
             console.error('Error fetching probabilities:', error);
+            // Display error message to user
+            const chartContainer = document.getElementById('chart-container');
+            if (chartContainer) {
+                chartContainer.innerHTML = `
+                    <div class="error-message">
+                        Error loading probability data. Please try refreshing the page.
+                        <br>
+                        Error details: ${error.message}
+                    </div>
+                `;
+            }
+            throw error; // Re-throw to maintain promise rejection
         });
 }
 
